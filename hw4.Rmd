@@ -1,3 +1,10 @@
+---
+title: "hw4"
+author: Nick Matthews; nickmatthews713
+date: "2/26/2020"
+output: html_document
+---
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -6,17 +13,159 @@ knitr::opts_chunk$set(echo = TRUE)
 
 The `ChickWeight` data set is part of the base package `datasets`. See `?ChickWeight` for details on the data.
 For all of the questions use `dplyr` functions with the pipe `%>%` whenever possible.
-
-**Submission instructions**: Create a folder named `ds202_hw4`, and name the RMarkDown file including your solutions `hw4.Rmd` under this folder. For the submission, create a GitHub repository named `ds202_hw4` under your GitHub account, and push both `hw4.Rmd` and the knitted `hw4.html` before the deadline. I will assume you use the same GitHub username as for your HW3 submission. The latest version of your homework appearing on GitHub before the deadline is graded. *It is crucial to follow the exact folder structure and file names*. This homework is **due on March 4** before class.
+```{r message=FALSE}
+# library and dataset imports
+library(datasets)
+library(dplyr)
+library(ggplot2)
+```
 
 1. Get a frequency breakdown of the number of chicks, their average weight and the standard deviation of the weights in each of the diets at the start of the study. Store the resulting data frame in a variable named `weight0` and print.<br>
 <!-- 5 pts of extra credit: construct a ggplot that shows average weights by diet with an interval (shown as a line) of +- the standard deviation around the averages. -->
+
+```{r}
+# weight0
+weight0 <- ChickWeight %>% 
+  group_by(Diet) %>%
+  summarise(num_chicks = n(),mean_weight = mean(weight, na.rm = TRUE), 
+            sd_weight = sd(weight, na.rm = TRUE))
+
+# EXTRA CREDIT: ggplot with error bars
+ggplot(data = weight0, aes(x = Diet, y=mean_weight)) + 
+  geom_bar(stat = "identity") +
+  geom_errorbar(aes(x=Diet, ymin=mean_weight-sd_weight,ymax=mean_weight+sd_weight),
+                width=0.2, colour="orange", alpha=0.9, size=1.0) + 
+  xlab("Diet Type") +
+  ylab("Average Weight") + 
+  ggtitle("Average Weight for each Diet with Standard Deviation") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+*Description:* Since I am making calculations on each of the different diets, I started
+by using the group_by function on the Diet feature. Then, I piped the output of this into the summarise function, where I constructed a new dataframe with the average_weight,
+sd_weight, and number of chicks for each of these diets. For the extra credit, I
+constructed a bar plot of Diet vs Average wieght and used "geom_errorbar" to include
+intervals on each weight.
+
 2. Each chick should have twelve weight measurements. Use the `dplyr` package to identify how many measurements are there for each chick. Extract a subset of the data for all chicks with complete information, name the data set `complete`, and print the first 3 rows. (Hint: you might want to use mutate to introduce a helper variable consisting of the number of observations)
+
+```{r}
+
+complete <- ChickWeight %>%
+  group_by(Chick) %>%
+  filter(n() == 12)
+
+head(complete, 3)
+
+```
+
+*Description:* For this, I use the dpylr 'filter' function after grouping the dataset by chick number. I use the 'n' function to count the number of observations
+for this group and make sure it is equal to 12
+
 4. In the complete data set introduce a new variable that measures the current weight difference compared to day 0. Name this variable  `weightgain` and print the first 3 rows of the new data frame.
+
+```{r}
+
+complete <- complete %>%
+  mutate(weightgain = c(0, diff(weight)))
+
+head(complete)
+complete
+
+```
+
+*Description:* In order to calculate the difference between weights in each successive row for each chick, I used the mutate function to add a new feature and
+the diff function to take the differences within the weight vector
+
 5. Use `{ggplot2}` to create side-by-side boxplots of `weightgain` by `Diet` for day 21. Change the order of the categories in the Diet variable such that the boxplots are ordered by median `weightgain`, and the lower limit of the y axis should be 0. Describe the relationship in 2-3 sentences. 
+
+```{r warning=FALSE}
+
+complete21 <- complete %>% filter(Time == 21)
+
+complete21 %>% 
+  ggplot(mapping = aes(x=reorder(Diet, weightgain, FUN=median),
+                                      y=weightgain)) + 
+  geom_boxplot() + ylim(0, 30) + xlab("Diet") + ylab("Weight Gain") +
+  ggtitle("Wight Gain vs Diet For Day 21") + 
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+*Description:* First, I filtered the complete dataset to make a subset of only
+day 21. Then, I piped the subset into a ggplot where I used the reorder function
+to sort the weightgain column by mean for each diet.
+
 6. Answer each of the following questions using numerical and graphical summary. Also explain what you found: (a) Which chick gained the most weight and which gained the least weight? (b) What diets were they on?
+
+```{r}
+
+completeMaxMin <- complete %>% 
+  summarise(diet = unique(Diet), maxWeight = max(weight))
+
+maxChick <- completeMaxMin %>% filter(maxWeight == max(maxWeight))
+minChick <- completeMaxMin %>% filter(maxWeight == min(maxWeight))
+
+# Numerical Answer
+maxChick
+minChick
+
+# Graphical Answer
+completeMaxMin %>%
+  ggplot(mapping = aes(x = reorder(Chick, -maxWeight), y = maxWeight, fill=diet)) +
+  geom_bar(stat = "identity") + theme(text = element_text(size = 8),
+                                      plot.title = element_text(hjust = 0.5)) + 
+  xlab("Chick number") + ylab("Weight") + ggtitle("Each Chicks Weight and Diet")
+
+```
+
+*Description:* For my numerical summary, I summarise the complete dataset to find the maximum weight and minimum weight for each chick. For a graphical summary, I diplay a barplot of every chicks weight ordered from max to min, colored by diet. With this, both (a) and (b) are answered.
+
 7. For the chicks with the least and the most weight at time 0, plot their growth trajectories over time. </br>
+
+### The Average Growth Trajectory is the red line for both plots below
+
+```{r}
+ 
+time0max <- complete %>% ungroup() %>% filter(Time == 0) %>% filter(weight == max(weight)) 
+time0min <- complete %>% ungroup() %>% filter(Time == 0) %>% filter(weight == min(weight)) 
+
+max0Chicks <- complete %>% ungroup() %>% filter(Chick %in% time0max$Chick)
+min0Chicks <- complete %>% ungroup() %>% filter(Chick %in% time0min$Chick)
+
+max0Chicks %>%
+  ggplot(aes(x=Time, y=weight, group=Chick, color=Chick)) + geom_line() + 
+  stat_summary(fun.y = mean, aes(group=1), geom = "line", colour="red") +
+  ggtitle("Growth Over Time For Chicks With Largest Starting Weight") + 
+  theme(plot.title = element_text(hjust = 0.5))
+
+min0Chicks %>%
+  ggplot(aes(x=Time, y=weight, group=Chick, color=Chick)) + geom_line() + 
+  stat_summary(fun.y = mean, aes(group=1), geom = "line", colour="red") +
+  ggtitle("Growth Over Time For Chicks With Smallest Starting Weight") + 
+    theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+*Description:* First, I filtered the complete dataset to only include rows where the time == 21 and the weight is
+equal to the max/min. Then, I created a subset of complete which only included Chicks who's numbers corresponded
+to the these max/min. Finally, I plotted them.
+
 8. Add to the previous plot the average growth trajectory for all chicks (calculated as the mean weight for each chick at each time). How do the trajectories compare?
+
+*Answer:* Looking at both trajectory lines, it appears that chicks who are a smaller weight at day 0 tend to grow larger than those who started out heavier at day zero. The ending average for chicks with a smaller starting weight is around 240 whereas the ending average for chicks that started out larger is not even 200.
+
 9. What else do you find interesting in the dataset? Show your exploratory analysis.
 
-Note: your submission is supposed to be fully reproducible, i.e. the TA and I will 'knit' your submission in RStudio. 
+```{r}
+
+complete %>% ungroup() %>% group_by(Diet,Time) %>% summarise(mean_weight = mean(weight)) %>%
+  ggplot(aes(x=Time, y=mean_weight, group=Diet, colour=Diet)) + geom_line()
+
+
+```
+
+*Answer:* Some questions that come to mind after solving problem 8 is "Does the diet have anything to do with this
+average? What is the growth rate for each diet?"
+
+*Description:* To do this, I group the chick dataset by Diet and Time, then preform summarise to calculate the mean
+weight for each of these groups.
