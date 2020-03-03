@@ -68,8 +68,7 @@ for this group and make sure it is equal to 12
 complete <- complete %>%
   mutate(weightgain = c(0, diff(weight)))
 
-head(complete)
-complete
+head(complete,3)
 
 ```
 

@@ -417,33 +417,14 @@ head(complete, 3)</code></pre>
 <pre class="r"><code>complete &lt;- complete %&gt;%
   mutate(weightgain = c(0, diff(weight)))
 
-head(complete)</code></pre>
-<pre><code>## # A tibble: 6 x 5
+head(complete,3)</code></pre>
+<pre><code>## # A tibble: 3 x 5
 ## # Groups:   Chick [1]
 ##   weight  Time Chick Diet  weightgain
 ##    &lt;dbl&gt; &lt;dbl&gt; &lt;ord&gt; &lt;fct&gt;      &lt;dbl&gt;
 ## 1     42     0 1     1              0
 ## 2     51     2 1     1              9
-## 3     59     4 1     1              8
-## 4     64     6 1     1              5
-## 5     76     8 1     1             12
-## 6     93    10 1     1             17</code></pre>
-<pre class="r"><code>complete</code></pre>
-<pre><code>## # A tibble: 540 x 5
-## # Groups:   Chick [45]
-##    weight  Time Chick Diet  weightgain
-##     &lt;dbl&gt; &lt;dbl&gt; &lt;ord&gt; &lt;fct&gt;      &lt;dbl&gt;
-##  1     42     0 1     1              0
-##  2     51     2 1     1              9
-##  3     59     4 1     1              8
-##  4     64     6 1     1              5
-##  5     76     8 1     1             12
-##  6     93    10 1     1             17
-##  7    106    12 1     1             13
-##  8    125    14 1     1             19
-##  9    149    16 1     1             24
-## 10    171    18 1     1             22
-## # … with 530 more rows</code></pre>
+## 3     59     4 1     1              8</code></pre>
 <p><em>Description:</em> In order to calculate the difference between weights in each successive row for each chick, I used the mutate function to add a new feature and the diff function to take the differences within the weight vector</p>
 <ol start="5" style="list-style-type: decimal">
 <li>Use <code>{ggplot2}</code> to create side-by-side boxplots of <code>weightgain</code> by <code>Diet</code> for day 21. Change the order of the categories in the Diet variable such that the boxplots are ordered by median <code>weightgain</code>, and the lower limit of the y axis should be 0. Describe the relationship in 2-3 sentences.</li>
