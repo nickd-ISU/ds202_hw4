@@ -159,13 +159,13 @@ to the these max/min. Finally, I plotted them.
 ```{r}
 
 complete %>% ungroup() %>% group_by(Diet,Time) %>% summarise(mean_weight = mean(weight)) %>%
-  ggplot(aes(x=Time, y=mean_weight, group=Diet, colour=Diet)) + geom_line()
+  ggplot(aes(x=Time, y=mean_weight, group=Diet, colour=Diet)) + geom_line() +
+  ggtitle("Average Growth Of Chicks in Each Diet") + theme(plot.title = element_text(hjust = 0.5))
 
 
 ```
 
-*Answer:* Some questions that come to mind after solving problem 8 is "Does the diet have anything to do with this
-average? What is the growth rate for each diet?"
+*Answer:* Some questions that come to mind after solving problem 8 is "What is the growth rate for each diet?"
 
 *Description:* To do this, I group the chick dataset by Diet and Time, then preform summarise to calculate the mean
 weight for each of these groups.
