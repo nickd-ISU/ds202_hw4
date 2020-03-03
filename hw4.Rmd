@@ -66,7 +66,7 @@ for this group and make sure it is equal to 12
 ```{r}
 
 complete <- complete %>%
-  mutate(weightgain = c(0, diff(weight)))
+  mutate(weightgain = weight - weight[Time == 0])
 
 head(complete,3)
 
@@ -84,7 +84,7 @@ complete21 <- complete %>% filter(Time == 21)
 complete21 %>% 
   ggplot(mapping = aes(x=reorder(Diet, weightgain, FUN=median),
                                       y=weightgain)) + 
-  geom_boxplot() + ylim(0, 30) + xlab("Diet") + ylab("Weight Gain") +
+  geom_boxplot() + expand_limits(y=0) + xlab("Diet") + ylab("Weight Gain") +
   ggtitle("Wight Gain vs Diet For Day 21") + 
   theme(plot.title = element_text(hjust = 0.5))
 
